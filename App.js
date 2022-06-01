@@ -1,8 +1,11 @@
 const app = require('express')();
+require('dotenv').config()
 const mongoose = require('mongoose');
 const bp = require('body-parser');
 const routes = require('../backend/routes/Routes')
 app.use(bp.json());
+const database = process.env.DATABASE;
+const port = process.env.PORT;
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
@@ -10,10 +13,10 @@ app.use(function(req, res, next) {
     next();
   });
   app.use('/api/',routes);
-mongoose.connect('mongodb+srv://sahajkedia:sahajkedia@companycluster.ybldu.mongodb.net/frontend?retryWrites=true&w=majority')
+mongoose.connect(database)
 .then(()=>{
     console.log('DB Connected')
-    app.listen(4000);
+    app.listen(port);
 })
 .catch((err) => {
     console.log(err)
