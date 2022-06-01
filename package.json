@@ -1,6 +1,5 @@
 {
   "name": "backend",
-  "proxy": "http://127.0.0.1:5000/",
   "version": "1.0.0",
   "description": "Internship",
   "main": "index.js",
@@ -14,6 +13,8 @@
     "express": "^4.18.1",
     "google-auth-library": "^8.0.2",
     "mongoose": "^6.3.4",
+    "nodemailer": "^6.7.5",
+    "nodemailer-sendgrid-transport": "^0.2.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
