@@ -1,9 +1,18 @@
 const User = require('../models/Model')
 const { v4: uuidv4 } = require('uuid');
+const {OAuth2Client} = require('google-auth-library');
+const client = new OAuth2Client(process.env.CLIENT_ID)
 
-
+const GoogleUsers = []
 const Signinwithgoogle = async(req,res,next) =>{
-    
+    const { token } = req.body;
+    const ticket = await client.verifyIdToken({
+        idToken:token,
+        audience:process.env.CLIENT_ID,
+    })
+    const {name, email} = ticket.getPayload();
+    GoogleUsers.push({name,email});
+    res.status(201).json({name, email});
 }
 const Signin = async (req,res,next) => {
     let {email,password} = req.body;
@@ -83,4 +92,4 @@ const Logout = async (req,res,next) => {
 exports.Signin = Signin;
 exports.Signup = Signup;
 exports.Logout = Logout;
-
+exports.Signinwithgoogle = Signinwithgoogle;
