@@ -2,8 +2,9 @@ const User = require('../models/Model')
 const { v4: uuidv4 } = require('uuid');
 const {OAuth2Client} = require('google-auth-library');
 const client = new OAuth2Client(process.env.CLIENT_ID)
-
+const sgMail = require('@sendgrid/mail')
 const GoogleUsers = []
+
 const Signinwithgoogle = async(req,res,next) =>{
     const { token } = req.body;
     const ticket = await client.verifyIdToken({
@@ -14,6 +15,8 @@ const Signinwithgoogle = async(req,res,next) =>{
     GoogleUsers.push({name,email});
     res.status(201).json({name, email});
 }
+
+
 const Signin = async (req,res,next) => {
     let {email,password} = req.body;
     let data;
@@ -29,10 +32,7 @@ const Signin = async (req,res,next) => {
                 data = item
                 passwordCorrect  = (password && data.password);
                 if(passwordCorrect){
-                    res.send({
-                        username:data.firstName,
-                        user_id:data.id,
-                    })
+                    res.redirect(`http://localhost:4000/api/verify-email/${email}`);
                 }
                 else{
                     res.send({error:"please enter valid data."})
@@ -42,6 +42,7 @@ const Signin = async (req,res,next) => {
 
     }    
 }
+
 
 const Signup = async (req,res,next) => {
     let {email,password,firstName,lastName} = req.body;
@@ -53,13 +54,32 @@ const Signup = async (req,res,next) => {
 
     const userExists = await User.findOne({email})
     if(!userExists){
-        const newUser = new User({
-            id:uuidv4(),
-            email:email,
-            password:password,
-            firstName:firstName,
-            lastName:lastName
-        })
+        let otpcode = Math.floor((Math.random()*10000)+1);
+    
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+    const msg = {
+      to: email, 
+      from: 'test@test.com', 
+      subject: 'Email for Verification',
+      text: otpcode,
+    }
+    sgMail
+      .send(msg)
+      .then(() => {
+        console.log('Email sent')
+      })
+      .catch((error) => {
+        console.error(error)
+      })
+
+
+    const newUser = new User({
+        id:uuidv4(),
+        email:email,
+        password:password,
+        firstName:firstName,
+        lastName:lastName
+    })
     
     try{
         let user = await newUser.save()
@@ -81,9 +101,73 @@ else return res.status(400).json({
 }
 
 
-//think about logout
-//Signin and Signup are working think about the other 2-3 routes
+const OtpSendControl = async(req,res,next) =>{
+    const {email} = req.params
+    let otpcode = Math.floor((Math.random()*10000)+1);
+    
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+    const msg = {
+      to: email, 
+      from: 'test@test.com', 
+      subject: 'Email for Verification',
+      text: otpcode,
+    }
+    sgMail
+      .send(msg)
+      .then(() => {
+        console.log('Email sent')
+      })
+      .catch((error) => {
+        console.error(error)
+      })
 
+    
+}
+
+
+const OtpVerifyControl = async(req,res,next) =>{
+    const otp = req.params.otp;
+    if(otp==otpcode){
+        return res.json({message : "Signed In Successfully"}).status(201)
+    }
+    else{
+        return res.json({message : "Wrong OTP"}).status(404)
+    }
+
+}
+
+
+const ForgotPassword = async(req,res,next) =>{
+    const {email} = req.params
+    const userExists = await User.findOne({email})
+    if(userExists){
+        let otpcode = Math.floor((Math.random()*10000)+1);
+    
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+    const msg = {
+      to: email, 
+      from: 'test@test.com', 
+      subject: 'Email for Verification',
+      text: otpcode,
+    }
+    sgMail
+      .send(msg)
+      .then(() => {
+        console.log('Email sent')
+      })
+      .catch((error) => {
+        console.error(error)
+      })
+
+    }
+    else{
+        return res.json({error: "User Not Found"}).status(400)
+    }
+    
+}
+
+
+//think about logout
 const Logout = async (req,res,next) => {
     req.logout()
     //redirect to homepage
@@ -93,3 +177,7 @@ exports.Signin = Signin;
 exports.Signup = Signup;
 exports.Logout = Logout;
 exports.Signinwithgoogle = Signinwithgoogle;
+exports.ForgotPassword = ForgotPassword;
+exports.OtpSendControl = OtpSendControl;
+exports.OtpVerifyControl = OtpVerifyControl;
+
