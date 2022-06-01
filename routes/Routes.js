@@ -4,9 +4,9 @@ const clientRef = require('../controller/Controller.js')
 router.post('/signin',clientRef.Signin)
 router.post('/signup',clientRef.Signup)
 router.get('/logout',clientRef.Logout)
-router.get('/reset-pass/:email',clientRef.ForgotPassword)
- router.post('/google-sign-in',clientRef.Signinwithgoogle)
+router.get('/forgot-pass/:email',clientRef.ForgotPassword)
+router.post('/google-sign-in',clientRef.Signinwithgoogle)
 router.post('/verify-email/:email',clientRef.OtpSendControl)
-router.post('/verify-email/:otp',clientRef.OtpVerifyControl)
-
+router.post('/verify/:otp',clientRef.OtpVerifyControl)
+router.put('/reset-pass/:newpass/:email',clientRef.ResetPassword);
 module.exports = router;
