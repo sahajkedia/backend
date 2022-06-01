@@ -32,7 +32,7 @@ const Signin = async (req,res,next) => {
                 data = item
                 passwordCorrect  = (password && data.password);
                 if(passwordCorrect){
-                    res.redirect(`http://localhost:4000/api/verify-email/${email}`);
+                    res.status(400)
                 }
                 else{
                     res.send({error:"please enter valid data."})
@@ -54,25 +54,7 @@ const Signup = async (req,res,next) => {
 
     const userExists = await User.findOne({email})
     if(!userExists){
-        let otpcode = Math.floor((Math.random()*10000)+1);
-    
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY)
-    const msg = {
-      to: email, 
-      from: 'test@test.com', 
-      subject: 'Email for Verification',
-      text: otpcode,
-    }
-    sgMail
-      .send(msg)
-      .then(() => {
-        console.log('Email sent')
-      })
-      .catch((error) => {
-        console.error(error)
-      })
-
-
+        
     const newUser = new User({
         id:uuidv4(),
         email:email,
@@ -103,6 +85,7 @@ else return res.status(400).json({
 
 const OtpSendControl = async(req,res,next) =>{
     const {email} = req.params
+    
     let otpcode = Math.floor((Math.random()*10000)+1);
     
     sgMail.setApiKey(process.env.SENDGRID_API_KEY)
